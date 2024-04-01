@@ -16,12 +16,12 @@ int main(int argc, char* argv[] )
         file_contents += str;
     }
 
-    streamjson::FilterListener<"jobs\\[[0-9]+\\]\\.conclusion"> conclusion_filter([](const std::string & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
+    streamjson::FilterListener<"jobs\\[[0-9]+\\]\\.conclusion"> conclusion_filter([](const std::string_view & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
     {
         std::cout << key << " : " << value.to_string() << std::endl;
     });
 
-    streamjson::FilterListener<"jobs\\[[0-9]+\\]\\.status"> status_filter([](const std::string & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
+    streamjson::FilterListener<"jobs\\[[0-9]+\\]\\.status"> status_filter([](const std::string_view & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
     {
         std::cout << key << " : " << value.to_string() << std::endl;
     });

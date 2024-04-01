@@ -34,13 +34,13 @@ int main(int argc, char* argv[] )
 {
     std::string name;
 
-    streamjson::FilterListener<"owners\\[[0-9]+\\]\\.name"> name_filter([&](const std::string & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
+    streamjson::FilterListener<"owners\\[[0-9]+\\]\\.name"> name_filter([&](const std::string_view & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
     {
         name = value.to_string();
     });
 
 
-    streamjson::FilterListener<"owners\\[[0-9]+\\]\\.cars\\[[0-9]+\\]\\.name"> car_filter([&](const std::string & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
+    streamjson::FilterListener<"owners\\[[0-9]+\\]\\.cars\\[[0-9]+\\]\\.name"> car_filter([&](const std::string_view & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
     {
         std::cout << name << " has a " << value.to_string() << std::endl;
     });

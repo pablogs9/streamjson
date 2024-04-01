@@ -31,7 +31,6 @@ namespace streamjson
  *
  * @brief A simple class to hold a JSON value
 */
-// TODO(pgarrido): reimplement JSONValue as a variant and using CTRE to parse the value
 struct JSONValue
     {
         enum class Type
@@ -61,6 +60,7 @@ struct JSONValue
 
             if (!success)
             {
+                std::cout << "INVALID value " << std::string(string, size+1) << std::endl;
                 type = Type::INVALID;
             }
         }
@@ -85,137 +85,62 @@ struct JSONValue
     protected:
         bool parse_string(const char * data, size_t size)
         {
-            bool ret = false;
 
-            // An string has to start and end with a quote
-            int initial_quote_pos = -1;
-            int end_qoute_pos = -1;
+            auto regex = ctre::search<"\"(.*)\"">(std::string_view(data, size + 1));
 
-            for (size_t i = 0; i <= size; i++)
+            if (regex)
             {
-                if (data[i] == '"')
-                {
-                    if (initial_quote_pos == -1)
-                    {
-                        initial_quote_pos = i;
-                    }
-                    else
-                    {
-                        end_qoute_pos = i;
-                        break;
-                    }
-                }
-            }
+                                                std::cout << "FOUND string " << std::string(data, size+1) << std::endl;
 
-            if(initial_quote_pos != -1 && end_qoute_pos != -1)
-            {
-                data += initial_quote_pos + 1;
-                size = end_qoute_pos - initial_quote_pos - 1;
-
-                string = std::string(data, size);
+                string = std::string(regex.get<1>().to_view());
                 type = Type::STRING;
-                ret = true;
+                return true;
             }
 
-            return ret;
+            return false;
         }
 
         bool parse_boolean(const char * data, size_t size)
         {
-            bool ret = false;
 
-            // Try to find true or false along the string
+            auto regex = ctre::search<"true|false|True|False|TRUE|FALSE">(std::string_view(data, size + 1));
 
-            while (*data == ' ' && size > 0)
+            if (regex)
             {
-                data++;
-                size--;
+                                    std::cout << "FOUND boolean " << std::string(data, size+1) << std::endl;
+
+                bool value = regex.to_view() == "true" || regex.to_view() == "True" || regex.to_view() == "TRUE";
+                boolean = value;
+                type = Type::BOOLEAN;
+                return true;
             }
 
-            const std::array<const char*, 6> values = {"true", "false", "True", "False", "TRUE", "FALSE"};
-            const std::array<bool, 6> boolean_values = {true, false, true, false, true, false};
-
-            for (size_t i = 0; i < values.size(); i++)
-            {
-                if (size >= strlen(values[i]) && strncmp(data, values[i], strlen(values[i])) == 0)
-                {
-                    boolean = boolean_values[i];
-                    type = Type::BOOLEAN;
-                    ret = true;
-                    break;
-                }
-            }
-
-            return ret;
+            return false;
         }
 
         bool parse_number(const char * data, size_t size)
         {
-            bool ret = false;
+            auto regex = ctre::search<"-?[0-9]+\\.?[0-9]*|-?[0-9]*\\.?[0-9]+">(std::string_view(data, size + 1));
 
-            // Try to find a number
-            double number = 0;
-            bool negative = false;
-            bool decimal = false;
-            double decimal_pos = 0.1;
-            bool error = false;
-
-            // Skip spaces
-            while (*data == ' ' && size > 0)
+            if (regex)
             {
-                data++;
-                size--;
-            }
-
-            for (size_t i = 0; i < size; i++)
-            {
-                if (data[i] == '-')
+                std::cout << "FOUND number " << std::string(data, size+1) << std::endl;
+                std::string_view number = regex.to_view();
+                if (number.find('.') != std::string_view::npos)
                 {
-                    negative = true;
-                }
-                else if (data[i] == '.')
-                {
-                    decimal = true;
-                }
-                else if (data[i] >= '0' && data[i] <= '9')
-                {
-                    if (decimal)
-                    {
-                        number += (data[i] - '0') * decimal_pos;
-                        decimal_pos *= 0.1;
-                    }
-                    else
-                    {
-                        number = number * 10 + (data[i] - '0');
-                    }
-                }
-                else if (data[i] == ' ')
-                {
-                    // End on space
-                }
-                else
-                {
-                    error = true;
-                    break;
-                }
-            }
-
-            if (!error)
-            {
-                if (decimal)
-                {
+                    floating = std::stod(std::string(number));
                     type = Type::FLOATING;
-                    this->floating = negative ? -number : number;
                 }
                 else
                 {
+                    integer = std::stoll(std::string(number));
                     type = Type::INTEGER;
-                    this->integer = int64_t(negative ? -number : number);
                 }
-                ret = true;
+
+                return true;
             }
 
-            return ret;
+            return false;
         }
 };
 
@@ -337,7 +262,7 @@ protected:
 template<CTRE_REGEX_INPUT_TYPE filter>
 struct FilterListener : public JSONListener
 {
-    using CallBackType = std::function<void(const std::string & key, const JSONValue & value, const std::vector<size_t>& depths)>;
+    using CallBackType = std::function<void(const std::string_view &, const JSONValue &, const std::vector<size_t>&)>;
 
     FilterListener(CallBackType callback)
     : callback_(callback)
