@@ -53,7 +53,7 @@ int main(int argc, char* argv[] )
     streamjson::MultiListener multi_filter({&name_filter, &car_filter, &all_filter});
 
     // Feed the file by chunks
-    constexpr size_t BUFFER_SIZE = 30;
+    constexpr size_t BUFFER_SIZE = 300;
     streamjson::AutofeedStreamJson<BUFFER_SIZE> chunk_parser(multi_filter);
 
     constexpr size_t CHUNK_SIZE = 10;
