@@ -7,7 +7,7 @@ It is designed to be memory efficient, fast and simple.
 
 The library is header-only and has a single dependency on [hanickadot/compile-time-regular-expressions](https://github.com/hanickadot/compile-time-regular-expressions/tree) for compile-time regular expressions, this dependency is also header-only and introduces the C++20 requirement.
 
-## Examples
+## Example
 
 ```cpp
 #include <streamjson.hpp>
@@ -34,13 +34,13 @@ int main(int argc, char* argv[] )
 {
     std::string name;
 
-    streamjson::FilterListener<"owners\\[[0-9]+\\]\\.name"> name_filter([&](const std::string & key, const streamjson::JsonValue & value, const std::vector<size_t> & indexes)
+    streamjson::FilterListener<"owners\\[[0-9]+\\]\\.name"> name_filter([&](const std::string & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
     {
         name = value.to_string();
     });
 
 
-    streamjson::FilterListener<"owners\\[[0-9]+\\]\\.cars\\[[0-9]+\\]\\.name"> car_filter([&](const std::string & key, const streamjson::JsonValue & value, const std::vector<size_t> & indexes)
+    streamjson::FilterListener<"owners\\[[0-9]+\\]\\.cars\\[[0-9]+\\]\\.name"> car_filter([&](const std::string & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
     {
         std::cout << name << " has a " << value.to_string() << std::endl;
     });

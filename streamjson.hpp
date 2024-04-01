@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef STREAMJSON_HPP
-#define STREAMJSON_HPP
+#pragma once
 
 #include <string>
 #include <string_view>
@@ -28,11 +27,12 @@ namespace streamjson
 {
 
 /**
- * @class JsonValue
+ * @class JSONValue
  *
  * @brief A simple class to hold a JSON value
 */
-struct JsonValue
+// TODO(pgarrido): reimplement JSONValue as a variant and using CTRE to parse the value
+struct JSONValue
     {
         enum class Type
         {
@@ -53,7 +53,7 @@ struct JsonValue
             bool boolean;
         };
 
-        JsonValue(const char * string, size_t size)
+        JSONValue(const char * string, size_t size)
         {
             bool success = parse_string(string, size);
             success = success || parse_number(string, size);
@@ -232,7 +232,7 @@ struct IJSONListener
     virtual void on_array_end() {};
     virtual void on_array_next_element() {};
     virtual void on_key(const std::string_view & key) {};
-    virtual void on_value(const JsonValue & value) {};
+    virtual void on_value(const JSONValue & value) {};
 };
 
 /**
@@ -315,7 +315,7 @@ struct JSONListener : public IJSONListener
         key_ = std::string(string.data(), string.size());
     };
 
-    void on_value(const JsonValue & /* value */) override {
+    void on_value(const JSONValue & /* value */) override {
         if(!key_.empty())
         {
             // Got a key and a value
@@ -337,14 +337,14 @@ protected:
 template<CTRE_REGEX_INPUT_TYPE filter>
 struct FilterListener : public JSONListener
 {
-    using CallBackType = std::function<void(const std::string & key, const JsonValue & value, const std::vector<size_t>& depths)>;
+    using CallBackType = std::function<void(const std::string & key, const JSONValue & value, const std::vector<size_t>& depths)>;
 
     FilterListener(CallBackType callback)
     : callback_(callback)
     {
     }
 
-    void on_value(const JsonValue & value) override {
+    void on_value(const JSONValue & value) override {
 
         // Find and replace "_."
         std::string query = aggregate_key_ + "." + key_;
@@ -427,7 +427,7 @@ public:
             listener->on_key(key);
         }
     };
-    void on_value(const JsonValue& value) override
+    void on_value(const JSONValue& value) override
     {
         for (auto listener : listeners_)
         {
@@ -495,7 +495,7 @@ public:
                         if (after_colon_)
                         {
                             after_colon_ = false;
-                            listener_->on_value(JsonValue(value_start_, value_size_));
+                            listener_->on_value(JSONValue(value_start_, value_size_));
                         }
                         else
                         {
@@ -520,7 +520,7 @@ public:
                 case Token::OBJECT_END:
                     if( after_colon_)
                     {
-                        listener_->on_value(JsonValue(value_start_, value_size_ - 1));
+                        listener_->on_value(JSONValue(value_start_, value_size_ - 1));
                     }
                     after_colon_ = false;
                     if(state_stack_.back() == State::IN_OBJECT)
@@ -543,7 +543,7 @@ public:
 
                     if(value_start_ != nullptr)
                     {
-                        listener_->on_value(JsonValue(value_start_, value_size_ - 1));
+                        listener_->on_value(JSONValue(value_start_, value_size_ - 1));
                         value_start_ = nullptr;
                         value_size_ = 0;
                     }
@@ -563,13 +563,13 @@ public:
                     // Maybe we found a value
                     if( after_colon_)
                     {
-                        listener_->on_value(JsonValue(value_start_, value_size_ - 1));
+                        listener_->on_value(JSONValue(value_start_, value_size_ - 1));
                         value_start_ = nullptr;
                         value_size_ = 0;
                     }
                     else if (state_stack_.back() == State::IN_ARRAY && value_start_ != nullptr)
                     {
-                        listener_->on_value(JsonValue(value_start_, value_size_ - 1));
+                        listener_->on_value(JSONValue(value_start_, value_size_ - 1));
                         value_start_ = &c + 1;
                         value_size_ = 0;
                     }
@@ -717,5 +717,3 @@ protected:
 };
 
 } // namespace streamjson
-
-#endif // STREAMJSON_HPP
