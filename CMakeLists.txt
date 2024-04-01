@@ -15,7 +15,7 @@
 cmake_minimum_required(VERSION 3.5)
 project (streamjson LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -24,7 +24,9 @@ add_library(streamjson INTERFACE)
 target_include_directories(streamjson
 INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ctre/single-header>
     $<INSTALL_INTERFACE:include>
+    $<INSTALL_INTERFACE:thirdparty/ctre/single-header>
 )
 
 # Tests

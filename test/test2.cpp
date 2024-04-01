@@ -1,15 +1,9 @@
-# streamjson
 
-`streamjson` is a C++20 library for reading JSON streams by chunks.
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
 
-Its primary objective is to be used in embedded scenarios where the whole JSON document is not available at once (e.g. network streams, file streams, etc.).
-It is designed to be memory efficient, fast and simple.
-
-The library is header-only and has a single dependency on [hanickadot/compile-time-regular-expressions](https://github.com/hanickadot/compile-time-regular-expressions/tree) for compile-time regular expressions, this dependency is also header-only and introduces the C++20 requirement.
-
-## Examples
-
-```cpp
 #include <streamjson.hpp>
 
 const std::string json = " \
@@ -62,4 +56,3 @@ int main(int argc, char* argv[] )
 
     return 0;
 }
-```

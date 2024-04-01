@@ -22,6 +22,8 @@
 #include <vector>
 #include <functional>
 
+#include <ctre.hpp>
+
 namespace streamjson
 {
 
@@ -332,20 +334,20 @@ protected:
  *
  * @brief A JSON listener that filters keys based on a string and calls a callback on match
 */
+template<CTRE_REGEX_INPUT_TYPE filter>
 struct FilterListener : public JSONListener
 {
     using CallBackType = std::function<void(const std::string & key, const JsonValue & value, const std::vector<size_t>& depths)>;
 
-    FilterListener(const std::string & filter, CallBackType callback)
-    : filter_(filter)
-    , callback_(callback)
+    FilterListener(CallBackType callback)
+    : callback_(callback)
     {
     }
 
     void on_value(const JsonValue & value) override {
 
         // Find and replace "_."
-        std::string query = aggregate_key_ + "." + std::string(key_.data(), key_.size());
+        std::string query = aggregate_key_ + "." + key_;
         size_t pos = query.find("_.");
         while (pos != std::string::npos)
         {
@@ -353,46 +355,7 @@ struct FilterListener : public JSONListener
             pos = query.find("_.");
         }
 
-        bool matched = true;
-
-        const char * filter_ptr = filter_.c_str();
-        const char * query_ptr = query.c_str();
-
-        while(matched && filter_ptr < filter_.c_str() + filter_.size() && query_ptr < query.c_str() + query.size())
-        {
-            // If inside an array index, handle it
-            if (*filter_ptr == '[' && *query_ptr == '[')
-            {
-                // Check that filter has a wildcard
-                if (*(filter_ptr + 1) == '*')
-                {
-                    while(*filter_ptr != ']')
-                    {
-                        filter_ptr++;
-                    }
-
-                    while(*query_ptr != ']')
-                    {
-                        query_ptr++;
-                    }
-
-                    matched = matched && true;
-                }
-            }else if (*filter_ptr == *query_ptr || *filter_ptr == '*')
-            {
-                matched = matched && true;
-            }
-            else
-            {
-                matched = false;
-                break;
-            }
-
-            filter_ptr++;
-            query_ptr++;
-        }
-
-        if (matched)
+        if (ctre::match<filter>(std::string_view(query)))
         {
             callback_(query, value, array_depth_);
         }
@@ -402,7 +365,8 @@ struct FilterListener : public JSONListener
 
 protected:
 
-    const std::string filter_;
+    // const std::string filter_;
+
     CallBackType callback_;
 };
 

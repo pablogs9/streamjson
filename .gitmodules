@@ -1,0 +1,3 @@
+[submodule "thirdparty/ctre"]
+	path = thirdparty/ctre
+	url = https://github.com/hanickadot/compile-time-regular-expressions
