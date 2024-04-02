@@ -60,7 +60,6 @@ struct JSONValue
 
             if (!success)
             {
-                std::cout << "INVALID value " << std::string(string, size+1) << std::endl;
                 type = Type::INVALID;
             }
         }
@@ -90,8 +89,6 @@ struct JSONValue
 
             if (regex)
             {
-                                                std::cout << "FOUND string " << std::string(data, size+1) << std::endl;
-
                 string = std::string(regex.get<1>().to_view());
                 type = Type::STRING;
                 return true;
@@ -107,8 +104,6 @@ struct JSONValue
 
             if (regex)
             {
-                                    std::cout << "FOUND boolean " << std::string(data, size+1) << std::endl;
-
                 bool value = regex.to_view() == "true" || regex.to_view() == "True" || regex.to_view() == "TRUE";
                 boolean = value;
                 type = Type::BOOLEAN;
@@ -124,7 +119,6 @@ struct JSONValue
 
             if (regex)
             {
-                std::cout << "FOUND number " << std::string(data, size+1) << std::endl;
                 std::string_view number = regex.to_view();
                 if (number.find('.') != std::string_view::npos)
                 {
@@ -392,6 +386,11 @@ public:
         {
             value_start_ = chunk;
             value_size_ = offset - 1;
+        }
+        else if(after_colon_)
+        {
+            value_start_ = chunk;
+            value_size_ = 0;
         }
 
         for (size_t i = offset; i < size; i++)
