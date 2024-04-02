@@ -8,19 +8,25 @@
 
 const std::string json = " \
 { \"owners\": [ \
-        {\"name\": \"John\", \
-        \"age\": 30, \
-        \"cars\":  [ \
-            \"name\": \"Ford\", \
-            \"name\": \"BMW\", \
-        ] }, \
-        {\"name\": \"Jane\", \
-        \"age\": 25, \
-        \"cars\":  [ \
-            \"name\": \"Audi\", \
-            \"name\": \"Mercedes\" \
-            \"name\": \"Fiat\" \
-        ] } \
+        {   \
+            \"name\": \"John\", \
+            \"age\": 30, \
+            \"owner\": False, \
+            \"cars\":  [ \
+                \"name\": \"Ford\", \
+                \"name\": \"BMW\", \
+            ] \
+        }, \
+        {   \
+            \"name\": \"Jane\", \
+            \"age\": 25, \
+            \"owner\": True, \
+            \"cars\":  [ \
+                \"name\": \"Audi\", \
+                \"name\": \"Mercedes\" \
+                \"name\": \"Fiat\" \
+            ] \
+        } \
     ] \
 }";
 
@@ -28,21 +34,26 @@ int main(int argc, char* argv[] )
 {
     std::string name;
 
-    streamjson::FilterListener<"owners\\[[0-9]+\\]\\.name"> name_filter([&](const std::string & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
+    streamjson::FilterListener<"owners\\[[0-9]+\\]\\.name"> name_filter([&](const std::string_view & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
     {
         name = value.to_string();
     });
 
 
-    streamjson::FilterListener<"owners\\[[0-9]+\\]\\.cars\\[[0-9]+\\]\\.name"> car_filter([&](const std::string & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
+    streamjson::FilterListener<"owners\\[[0-9]+\\]\\.cars\\[[0-9]+\\]\\.name"> car_filter([&](const std::string_view & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
     {
         std::cout << name << " has a " << value.to_string() << std::endl;
     });
 
-    streamjson::MultiListener multi_filter({&name_filter, &car_filter});
+    streamjson::FilterListener<".*"> all_filter([&](const std::string_view & key, const streamjson::JSONValue & value, const std::vector<size_t> & indexes)
+    {
+        std::cout << key << " : " << value.to_string() << std::endl;
+    });
+
+    streamjson::MultiListener multi_filter({&name_filter, &car_filter, &all_filter});
 
     // Feed the file by chunks
-    constexpr size_t BUFFER_SIZE = 30;
+    constexpr size_t BUFFER_SIZE = 300;
     streamjson::AutofeedStreamJson<BUFFER_SIZE> chunk_parser(multi_filter);
 
     constexpr size_t CHUNK_SIZE = 10;
